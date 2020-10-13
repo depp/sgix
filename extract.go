@@ -65,11 +65,12 @@ func extractLink(e entry, dest string) error {
 }
 
 func extractEntry(e entry, src *os.File, dest string) error {
-	if !isSafePath(e.path) {
+	name := path.Clean(e.path)
+	if !isSafePath(name) {
 		return errors.New("invalid path")
 	}
 	if dest != "" {
-		dest = path.Join(dest, e.path)
+		dest = path.Join(dest, name)
 		if err := os.MkdirAll(path.Dir(dest), 0777); err != nil {
 			return err
 		}
