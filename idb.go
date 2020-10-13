@@ -83,12 +83,14 @@ func parseEntry(line []byte, curoff *uint64) (e entry, err error) {
 	f, line = getField(line)
 	e.path = string(f)
 	_, line = getField(line)
-	_, line = getField(line)
 	var p []byte
 	for len(line) != 0 {
 		f, p, line, err = getFieldP(line)
 		if err != nil {
 			return e, err
+		}
+		if p == nil {
+			continue
 		}
 		var x uint64
 		switch string(f) {
@@ -112,7 +114,7 @@ func parseEntry(line []byte, curoff *uint64) (e entry, err error) {
 			e.cmpsize = x
 		case "symval":
 			e.symval = string(p)
-		case "f", "exitop", "nohist", "nostrip":
+		case "f", "exitop", "nohist", "nostrip", "mach", "postop", "config":
 		default:
 			fmt.Printf("UNKNOWN: %q\n", f)
 		}
