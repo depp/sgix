@@ -50,6 +50,13 @@ func extractFile(e entry, src *os.File, dest string) error {
 	return nil
 }
 
+func extractDirectory(e entry, dest string) error {
+	if dest == "" {
+		return nil
+	}
+	return os.Mkdir(dest, 0777)
+}
+
 func extractLink(e entry, dest string) error {
 	if dest == "" {
 		return nil
@@ -70,6 +77,8 @@ func extractEntry(e entry, src *os.File, dest string) error {
 	switch e.ty {
 	case 'f':
 		return extractFile(e, src, dest)
+	case 'd':
+		return extractDirectory(e, dest)
 	case 'l':
 		return extractLink(e, dest)
 	default:
