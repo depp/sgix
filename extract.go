@@ -40,14 +40,15 @@ func extractFile(e entry, src *os.File, dest string) error {
 	if err != nil {
 		return err
 	}
-	exe := exec.Command("uncompress")
-	exe.Stdin = &io.LimitedReader{R: src, N: int64(e.cmpsize)}
-	exe.Stdout = fp
-	exe.Stderr = os.Stderr
-	if err := exe.Run(); err != nil {
-		return err
+	if e.cmpsize > 0 {
+		exe := exec.Command("uncompress")
+		exe.Stdin = &io.LimitedReader{R: src, N: int64(e.cmpsize)}
+		exe.Stdout = fp
+		exe.Stderr = os.Stderr
+		return exe.Run()
 	}
-	return nil
+	_, err = io.CopyN(fp, src, int64(e.size))
+	return err
 }
 
 func extractDirectory(e entry, dest string) error {
