@@ -103,20 +103,27 @@ func parseEntry(line []byte, curoff *uint64) (e entry, err error) {
 			if err != nil {
 				return e, fmt.Errorf("invalid size: %q", p)
 			}
-			e.sum = x
+			e.size = x
 		case "cmpsize":
 			x, err = strconv.ParseUint(string(p), 10, 64)
 			if err != nil {
 				return e, fmt.Errorf("invalid cmpsize: %q", p)
 			}
 			e.cmpsize = x
-			e.offset = *curoff
-			*curoff += x + uint64(len(e.path)+2)
 		case "symval":
 			e.symval = string(p)
 		case "f", "exitop", "nohist", "nostrip":
 		default:
 			fmt.Printf("UNKNOWN: %q\n", f)
+		}
+	}
+	if e.ty == 'f' {
+		e.offset = *curoff
+		*curoff += uint64(len(e.path)) + 2
+		if e.cmpsize > 0 {
+			*curoff += e.cmpsize
+		} else {
+			*curoff += e.size
 		}
 	}
 	return e, nil
@@ -137,7 +144,6 @@ func readIDB(name string) ([]entry, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%s:%d: %v", name, lineno, err)
 		}
-		fmt.Println(e)
 		r = append(r, e)
 	}
 	if err := sc.Err(); err != nil {

@@ -2,29 +2,37 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 )
 
 func mainE() error {
 	args := os.Args
-	if len(args) != 3 {
-		return errors.New("usage: sgix <file> <dir>")
+	if len(args) < 2 || len(args) > 4 {
+		return errors.New("usage: sgix <file.idb> [<data> [<dir>]]")
 	}
-	basename := args[1]
-	dest := args[2]
-	if strings.HasSuffix(basename, ".idb") {
-		basename = basename[:len(basename)-4]
-	} else if strings.HasSuffix(basename, ".sw") {
-		basename = basename[:len(basename)-3]
-	}
-	ents, err := readIDB(basename + ".idb")
+	idbfile := args[1]
+	ents, err := readIDB(idbfile)
 	if err != nil {
 		return err
 	}
-	return extract(ents, basename+".sw", dest)
+	if len(args) < 3 {
+		return nil
+	}
+	datafile := args[2]
+	var dest string
+	if len(args) >= 4 {
+		dest = args[3]
+		if dest == "" {
+			return errors.New("invalid destination directory")
+		}
+		fmt.Println("Extracting...")
+	} else {
+		fmt.Println("Verifying...")
+	}
+	return extract(ents, datafile, dest)
 }
 
 func main() {

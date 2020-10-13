@@ -21,21 +21,24 @@ func isSafePath(name string) bool {
 }
 
 func extractFile(e entry, src *os.File, dest string) error {
-	fp, err := os.Create(dest)
-	if err != nil {
-		return err
-	}
 	if _, err := src.Seek(int64(e.offset), io.SeekStart); err != nil {
 		return err
 	}
-	buf := make([]byte, len(e.path) + 2)
+	buf := make([]byte, len(e.path)+2)
 	if _, err := src.Read(buf); err != nil {
 		return nil
 	}
-	expect := make([]byte, len(e.path) + 2)
+	expect := make([]byte, len(e.path)+2)
 	copy(expect, buf)
 	if !bytes.Equal(buf, expect) {
 		return errors.New("out of sync with file")
+	}
+	if dest == "" {
+		return nil
+	}
+	fp, err := os.Create(dest)
+	if err != nil {
+		return err
 	}
 	exe := exec.Command("uncompress")
 	exe.Stdin = &io.LimitedReader{R: src, N: int64(e.cmpsize)}
@@ -48,6 +51,9 @@ func extractFile(e entry, src *os.File, dest string) error {
 }
 
 func extractLink(e entry, dest string) error {
+	if dest == "" {
+		return nil
+	}
 	return os.Symlink(e.symval, dest)
 }
 
@@ -55,9 +61,11 @@ func extractEntry(e entry, src *os.File, dest string) error {
 	if !isSafePath(e.path) {
 		return errors.New("invalid path")
 	}
-	dest = path.Join(dest, e.path)
-	if err := os.MkdirAll(path.Dir(dest), 0777); err != nil {
-		return err
+	if dest != "" {
+		dest = path.Join(dest, e.path)
+		if err := os.MkdirAll(path.Dir(dest), 0777); err != nil {
+			return err
+		}
 	}
 	switch e.ty {
 	case 'f':

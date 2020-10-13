@@ -23,10 +23,10 @@ Example.sw
 To extract, just run `sgix` and specify the destination:
 
 ```
-$ sgix Example out
+$ sgix Example.idb Example.sw out
 ```
 
-This will create a folder called `out` with the extracted contents. The first parameter can be either the name of the `*.idb` file, the name of the `*.sw` file, or the base name.
+This will create a folder called `out` with the extracted contents.
 
 ## License
 
